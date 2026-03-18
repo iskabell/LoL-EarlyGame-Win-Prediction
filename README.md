@@ -163,3 +163,60 @@ After running the permutation test, I obtained a **p-value of 0.0**. Since this 
 
 This result supports the main question of the project: early-game economic advantage is strongly associated with eventual match outcome. While this does not prove that being ahead in gold directly causes a win, it does show a clear and statistically significant relationship between early gold lead and victory.
 
+## Framing a Prediction Problem
+
+I framed my prediction problem as **binary classification**: predicting whether a team will **win** (`result = 1`) or **lose** (`result = 0`) a match using only information available **15 minutes into the game**.
+
+I chose **`result`** as the response variable because match outcome is the most natural quantity to predict in this dataset, and it aligns with the overall theme of my project: understanding whether early-game advantages are associated with winning.
+
+To evaluate my model, I use **accuracy**. Since this is a binary classification problem and the classes are reasonably balanced, accuracy is an appropriate metric for measuring overall predictive performance. I chose accuracy instead of metrics like precision or recall because my main goal is to measure how often the model correctly predicts the overall outcome of a match, rather than focusing on performance for only one class.
+
+At the **time of prediction**, I assume that I would only know information available by the **15-minute mark** of the game. Because of this, I only use early-game features such as `golddiffat15`, `xpdiffat15`, `csdiffat15`, `firstblood`, `firstdragon`, `firsttower`, and engineered features derived from those variables. I did not use any information from later in the match, since that would not be available when making the prediction.
+
+## Baseline Model
+
+For my baseline model, I used a **logistic regression classifier** to predict whether a team wins (`result = 1`) or loses (`result = 0`) using only early-game information available by 15 minutes.
+
+The model uses four features:
+- `golddiffat15` — **quantitative**; the team’s gold difference at 15 minutes
+- `xpdiffat15` — **quantitative**; the team’s experience difference at 15 minutes
+- `firstblood` — **nominal (binary)**; whether the team secured first blood
+- `firsttower` — **nominal (binary)**; whether the team secured first tower
+
+To prepare the data, I standardized the quantitative features using `StandardScaler` and left the binary indicator features unchanged using a passthrough transformation. All preprocessing and model fitting were implemented together in a single sklearn `Pipeline`.
+
+When evaluated on an unseen test set, the baseline model achieved an **accuracy of about 0.7415**. This means the model correctly predicted the match outcome about 74% of the time on held-out data. I think this is a reasonable baseline because it shows that early-game variables already contain substantial information about whether a team will win. However, I do not consider it my best model yet, since there is still room for improvement through additional feature engineering, better feature selection, and hyperparameter tuning.
+
+## Final Model
+
+For my final model, I continued using **logistic regression** and added two engineered features to better capture early-game advantage:
+
+- `kill_diff_15` — **quantitative**; the difference between a team’s kills and its opponent’s kills at 15 minutes
+- `gold_xp_interaction` — **quantitative**; the product of `golddiffat15` and `xpdiffat15`
+
+I added `kill_diff_15` because kill advantage reflects early combat control and map pressure that may not be fully captured by gold and experience differences alone. I added `gold_xp_interaction` because teams that are ahead in both gold and experience at the same time may be in a stronger overall position than teams that lead in only one of those measures. These engineered features were meant to better represent how multiple forms of early-game advantage combine to influence match outcome.
+
+The final model used the original baseline features together with these two new features:
+- `golddiffat15` — **quantitative**
+- `xpdiffat15` — **quantitative**
+- `firstblood` — **nominal (binary)**
+- `firsttower` — **nominal (binary)**
+- `kill_diff_15` — **quantitative**
+- `gold_xp_interaction` — **quantitative**
+
+As in the baseline model, I standardized the quantitative features with `StandardScaler` and passed the binary features through unchanged. All preprocessing, model fitting, and tuning were implemented in a single sklearn `Pipeline`.
+
+To improve the model, I used **GridSearchCV** with 5-fold cross-validation to tune the logistic regression hyperparameters `C` and `class_weight`. I chose to tune `C` because it controls the strength of regularization, which affects how closely the model fits the training data. I chose to tune `class_weight` because reweighting the classes can sometimes improve generalization if one class is slightly harder to predict.
+
+The best-performing hyperparameters were:
+- `C = 0.1`
+- `class_weight = "balanced"`
+
+When evaluated on the same unseen test set as the baseline model, the final model achieved an **accuracy of about 0.74235**, compared to the baseline model’s **0.74154**. This is a small improvement, but it suggests that the additional engineered features and hyperparameter tuning helped the model generalize slightly better to unseen data. Even though the gain is modest, the final model is still an improvement because it captures more aspects of early-game advantage while remaining interpretable.
+
+<p align="center">
+  <img src="assets/confusion-matrix.png" alt="Confusion Matrix for Final Model" width="500">
+</p>
+
+The confusion matrix shows that the model correctly predicts many losses and wins, with most values along the diagonal. Although the model makes some mistakes in both directions, the number of correct predictions is noticeably higher than the number of misclassifications, which is consistent with the model’s accuracy of about 74%.
+
