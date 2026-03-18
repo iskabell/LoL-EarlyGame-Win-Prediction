@@ -36,13 +36,13 @@ I then selected the columns most relevant to early-game performance and match ou
 
 Here is the head of the cleaned DataFrame:
 
-| result | side | golddiffat15 | xpdiffat15 | kill_diff_15 | firstblood | firstdragon | firsttower |
-|---:|:---|---:|---:|---:|---:|---:|---:|
-| 0 | Blue | -3837.0 | -469.0 | -3.0 | 0.0 | 0.0 | 0.0 |
-| 1 | Red  | 3837.0  | 469.0  | 3.0  | 1.0 | 1.0 | 1.0 |
-| 1 | Blue | 5069.0  | 2014.0 | 5.0  | 1.0 | 0.0 | 1.0 |
-| 0 | Red  | -5069.0 | -2014.0| -5.0 | 0.0 | 1.0 | 0.0 |
-| 0 | Blue | 118.0   | 1990.0 | 4.0  | 0.0 | 0.0 | 0.0 |
+| result | side | golddiffat15 | xpdiffat15 | csdiffat15 | kill_diff_15 | firstblood | firstdragon | firsttower |
+|---:|:---|---:|---:|---:|---:|---:|---:|---:|
+| 0 | Blue | -3837.0 | -469.0 | -16.0 | -3.0 | 0.0 | 0.0 | 0.0 |
+| 1 | Red  | 3837.0  | 469.0  |16.0 | 3.0  | 1.0 | 1.0 | 1.0 |
+| 1 | Blue | 5069.0  | 2014.0 |64.0 | 5.0  | 1.0 | 0.0 | 1.0 |
+| 0 | Red  | -5069.0 | -2014.0|-64.0 | -5.0 | 0.0 | 1.0 | 0.0 |
+| 0 | Blue | 118.0   | 1990.0 |-43.0 | 4.0  | 0.0 | 0.0 | 0.0 |
 
 ### Univariate Analysis
 
