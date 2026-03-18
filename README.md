@@ -220,3 +220,22 @@ When evaluated on the same unseen test set as the baseline model, the final mode
 
 The confusion matrix shows that the model correctly predicts many losses and wins, with most values along the diagonal. Although the model makes some mistakes in both directions, the number of correct predictions is noticeably higher than the number of misclassifications, which is consistent with the model’s accuracy of about 74%.
 
+## Fairness Analysis
+
+To assess fairness, I tested whether my final model performs worse for **red-side teams** than for **blue-side teams**.
+
+- **Group X:** red-side teams  
+- **Group Y:** blue-side teams  
+- **Evaluation metric:** precision  
+- **Null hypothesis:** The model is fair with respect to side. Its precision for red-side teams and blue-side teams is roughly the same, and any observed difference is due to random chance.  
+- **Alternative hypothesis:** The model is unfair with respect to side. Its precision for red-side teams is lower than its precision for blue-side teams.  
+- **Test statistic:** precision(red) − precision(blue)  
+- **Significance level:** 0.05  
+
+I chose side as the grouping variable because red side and blue side are meaningful groups in League of Legends, and I wanted to check whether the model performs differently depending on which side a team is on.
+
+Using the final model on the same unseen test set, I found that the precision for red-side teams was about **0.7400**, while the precision for blue-side teams was about **0.7585**. This gives an observed difference of about **-0.0185**.
+
+I then performed a one-sided permutation test and obtained a **p-value of about 0.1746**. Because this p-value is greater than **0.05**, I fail to reject the null hypothesis.
+
+Therefore, I do **not** have sufficient evidence to conclude that the model is less precise for red-side teams than for blue-side teams. Based on this test, the model does not appear to show a statistically significant fairness issue with respect to side.
