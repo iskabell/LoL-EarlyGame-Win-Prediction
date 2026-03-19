@@ -1,34 +1,35 @@
 #   Rift to Result: Predicting Wins in League of Legends
-By Isabel Yang
 
-Machine learning model predicting early-game match outcomes in League of Legends. Final project for DSC 80 at UCSD.
+A machine learning project predicting League of Legends match outcomes using early-game match statistics. 
+
+By Isabel Yang
 
 ## Introduction
 
 This project uses professional League of Legends match data from Oracle’s Elixir. The dataset contains detailed statistics about in-game performance, which makes it useful for studying how early-game advantages relate to match outcomes.
 
-When first exploring the dataset, I considered several possible questions, including whether being ahead at 15 minutes increases a team’s chance of winning, which early-game features are most associated with match outcome, and whether objective advantages like first blood or first tower are strong predictors of success. The question I ultimately chose to investigate is:
+The question I chose to investigate is:
 
 **Does being ahead in the early game increase a team’s probability of winning?**
 
-This question is interesting because early-game advantages such as gold lead, XP lead, and first objectives are often seen as very important in competitive League of Legends, but I wanted to examine how strongly those factors are actually associated with winning in the data. Readers should care because this project helps explain whether early momentum truly matters and which early indicators are most useful for understanding and predicting match results.
+This question is interesting because early-game advantages such as gold lead, XP lead, and first objectives are seen as very important in competitive League of Legends, but I wanted to examine how strongly those factors are actually associated with winning in the data. This project helps to explain whether early momentum truly matters and which early indicators are most useful for understanding and predicting match results.
 
 After filtering to team-level observations, the dataset contains 18,472 rows and 8 columns. The most relevant columns for this question are:
 
 - `result`: whether the team won or lost the match
-- `golddiffat15`: gold difference at 15 minutes
-- `xpdiffat15`: experience difference at 15 minutes
-- `killsat15`: team kills at 15 minutes
-- `opp_killsat15`: opponent kills at 15 minutes
-- `firstblood`: whether the team got first blood
-- `firsttower`: whether the team got first tower
+- `golddiffat15`: gold difference at 15 minutes into the match 
+- `xpdiffat15`: experience difference at 15 minutes into the match 
+- `killsat15`: team kills at 15 minutes into the match 
+- `opp_killsat15`: opponent kills at 15 minutes into the match
+- `firstblood`: whether the team got the first blood
+- `firsttower`: whether the team got the first tower
 - `side`: whether the team played on red side or blue side
 
 Together, these columns capture different types of early-game advantage, including economy, experience, combat performance, and objective control.
 
 ## Data Cleaning and Exploratory Data Analysis
 
-The original Oracle’s Elixir dataset contains match statistics at multiple levels of observation, including individual players and teams. Since my project question is about whether **a team’s early-game advantage increases its probability of winning**, I first filtered the dataset to rows where `position == "team"`. This step is important because the data generating process records both player-level and team-level information, and using player rows would not match the unit of analysis for my question. After filtering, each row represented a single **team-game observation**.
+The original Oracle’s Elixir dataset contains match statistics at multiple levels of observation, including individual players and teams. Since my project question is about whether **a team’s** early-game advantage increases its probability of winning, I first filtered the dataset to rows where `position == "team"`. Because the dataset includes both player-level and team-level information, using player rows would not reflect the correct unit of analysis for my question. After filtering, each row represented a single **team-game observation**.
 
 Next, I created a new feature called `kill_diff_15`, defined as a team’s kills at 15 minutes minus its opponent’s kills at 15 minutes. This engineered variable better captures relative early-game combat advantage than raw kills alone, since winning in League of Legends depends on how a team performs compared to its opponent, not just its absolute total.
 
@@ -62,7 +63,7 @@ This histogram shows the distribution of `golddiffat15`, the gold difference at 
   frameborder="0"
 ></iframe>
 
-This histogram shows the distribution of `xpdiffat15`, the experience difference at 15 minutes. The distribution is centered near 0 because one team’s advantage is the other team’s deficit, while the wide spread suggests that teams can have substantially different early-game experience leads across matches.
+This histogram shows the distribution of `xpdiffat15`, the experience(XP) difference at 15 minutes. The distribution is centered near 0 because one team’s XP lead is the other team’s deficit, while the wide spread suggests that teams can have substantially different early-game XP leads across matches.
 
 ### Bivariate Analysis
 
@@ -82,7 +83,7 @@ This scatterplot shows a strong positive relationship between gold difference an
   frameborder="0"
 ></iframe>
 
-This plot compares gold difference at 15 minutes across wins and losses. Winning teams tend to have noticeably higher gold differences than losing teams, suggesting that early economic advantage is strongly associated with match outcome.
+This plot compares gold difference at 15 minutes across wins and losses. Winning teams tend to have higher gold differences than losing teams, suggesting that early economic advantage is strongly associated with match outcome.
 
 ### Interesting Aggregates
 
@@ -105,19 +106,19 @@ A second grouped summary shows win rate by both `firsttower` and gold-difference
 | 0.0 | 0.11 | 0.28 | 0.41 | 0.57 | 0.78 |
 | 1.0 | 0.22 | 0.43 | 0.59 | 0.72 | 0.89 |
 
-This pivot table suggests that securing first tower is associated with a higher win rate across every gold-difference bucket. Even after accounting for gold lead, teams that take first tower tend to perform better, which suggests that early objective control may provide information beyond pure economy alone.
+This pivot table suggests that securing first tower is associated with a higher win rate across every gold-difference bucket. Even after accounting for gold lead, teams that take the first tower tend to perform better, indicating that the value of early objective control may extend beyond gold advantage alone.
 
 ## Assessment of Missingness
 
-### MNAR Analysis
+### Missing Not At Random (MNAR) Analysis
 
-One column in the original dataset that I believe could be **MNAR** is `playerid`. A value in `playerid` may be missing when Oracle’s Elixir or the underlying data source is unable to confidently match a row to a specific player. This suggests that the missingness may depend on the unobserved value itself. For example, certain players may be harder to identify because they use alternate accounts, inconsistent spellings, name changes, or incomplete roster information. In that case, the missingness is not just a function of other observed columns, but of the missing player identity itself, which is why `playerid` is plausibly **MNAR**.
+One column in the original dataset that I believe could be **MNAR** is `playerid`. A value in `playerid` may be missing when Oracle’s Elixir is unable to confidently match a row to a specific player. This suggests that the missingness may depend on the unobserved value itself. For example, certain players may be harder to identify because they use alternate accounts, inconsistent spellings, name changes, or incomplete roster information. In that case, the missingness is not just determined by other observed columns, but by the missing player identity itself, which is why `playerid` is plausibly **MNAR**.
 
-To better explain this missingness and potentially make it **MAR** instead, I would want additional data about roster history, alternate usernames, player name standardization, and league-level record quality. With those extra variables, it might become possible to explain missing `playerid` values using observed information rather than treating the missingness as depending on the missing value itself.
+To better understand this missingness and potentially reframe it as **MAR** instead, I would want additional data about roster history, alternate usernames, player name standardization, and league-level record quality. With those extra variables, it might become possible to explain missing `playerid` values using observed information rather than treating the missingness as depending on the missing value itself.
 
 ### Missingness Dependency
 
-For the missingness dependency analysis, I focused on the column `deathsat25`, which records the number of deaths a team had by 25 minutes. This column has non-trivial missingness because some matches end before the 25-minute mark, so 25-minute statistics are not always observed. This is closely tied to the data generating process: if a game does not last long enough, then values measured at 25 minutes cannot be recorded.
+For the missingness dependency analysis, I focused on the column `deathsat25`, which records the number of deaths a team had by 25 minutes. This column has non-trivial missingness because some matches end before the 25-minute mark, so 25-minute statistics are not always observed. Since 25-minute statistics can only exist for games that reach 25 minutes, games ending earlier will necessarily have missing values.
 
 To study this missingness, I created a Boolean indicator column called `deathsat25_missing` and used permutation tests to determine whether the missingness of `deathsat25` depends on other variables. I tested whether its missingness depends on `short_game`, which indicates whether a match lasted fewer than 25 minutes, and on `result`, which indicates whether the team won or lost.
 
@@ -135,7 +136,7 @@ For the second permutation test, I again used the difference in missingness rate
 
 This test produced a **p-value of 1.0**, so I failed to reject the null hypothesis. There is not enough statistical evidence to conclude that the missingness of `deathsat25` depends on `result`.
 
-Together, these results suggest that the missingness of `deathsat25` is strongly related to match duration, but not to whether the team won or lost. That makes sense from the data generating process: 25-minute statistics are mainly missing because some matches end before 25 minutes, not because of the final outcome itself.
+Together, these results suggest that the missingness of `deathsat25` is strongly related to match duration, but not to whether the team won or lost. This makes sense because 25-minute statistics are usually missing when a match ends too early, not because of whether the team ultimately wins or loses.
 
 ### Missingness Exploration Plot
 
@@ -161,7 +162,7 @@ In the observed data, the win rate for teams that were **not ahead** in gold at 
 
 After running the permutation test, I obtained a **p-value of 0.0**. Since this is well below 0.05, I reject the null hypothesis. There is strong statistical evidence that teams ahead in gold at 15 minutes tend to win more often than teams that are not ahead at 15 minutes.
 
-This result supports the main question of the project: early-game economic advantage is strongly associated with eventual match outcome. While this does not prove that being ahead in gold directly causes a win, it does show a clear and statistically significant relationship between early gold lead and victory.
+Thus, early-game economic advantage is strongly associated with eventual match outcome. While this does not prove that being ahead in gold directly causes a win, it does show a clear and statistically significant relationship between early gold lead and victory.
 
 ## Framing a Prediction Problem
 
@@ -185,7 +186,7 @@ The model uses four features:
 
 To prepare the data, I standardized the quantitative features using `StandardScaler` and left the binary indicator features unchanged using a passthrough transformation. All preprocessing and model fitting were implemented together in a single sklearn `Pipeline`.
 
-When evaluated on an unseen test set, the baseline model achieved an **accuracy of about 0.7415**. This means the model correctly predicted the match outcome about 74% of the time on held-out data. I think this is a reasonable baseline because it shows that early-game variables already contain substantial information about whether a team will win. However, I do not consider it my best model yet, since there is still room for improvement through additional feature engineering, better feature selection, and hyperparameter tuning.
+When evaluated on an unseen test set, the baseline model achieved an **accuracy of about 0.7415**. This means the model correctly predicted the match outcome about 74% of the time on unseen data. I think this is a reasonable baseline because it shows that early-game variables already contain substantial information about whether a team will win. However, I do not consider it my best model yet, since there is still room for improvement through additional feature engineering, better feature selection, and hyperparameter tuning.
 
 ## Final Model
 
@@ -212,13 +213,13 @@ The best-performing hyperparameters were:
 - `C = 0.1`
 - `class_weight = "balanced"`
 
-When evaluated on the same unseen test set as the baseline model, the final model achieved an **accuracy of about 0.74235**, compared to the baseline model’s **0.74154**. This is a small improvement, but it suggests that the additional engineered features and hyperparameter tuning helped the model generalize slightly better to unseen data. Even though the gain is modest, the final model is still an improvement because it captures more aspects of early-game advantage while remaining interpretable.
+When evaluated on the same unseen test set as the baseline model, the final model achieved an **accuracy of about 0.74235**, compared to the baseline model’s **0.74154**. This is a small improvement, but it suggests that the additional engineered features and hyperparameter tuning helped the model generalize slightly better to unseen data. Even though the gain is small, the final model is still an improvement because it captures more aspects of early-game advantage while remaining interpretable.
 
 <p align="center">
   <img src="assets/confusion-matrix.png" alt="Confusion Matrix for Final Model" width="500">
 </p>
 
-The confusion matrix shows that the model correctly predicts many losses and wins, with most values along the diagonal. Although the model makes some mistakes in both directions, the number of correct predictions is noticeably higher than the number of misclassifications, which is consistent with the model’s accuracy of about 74%.
+This confusion matrix shows that the model correctly predicts many losses and wins, with most values along the diagonal. Although the model makes some mistakes in both directions, the number of correct predictions is noticeably higher than the number of misclassifications, which is consistent with the model’s accuracy of about 74%.
 
 ## Fairness Analysis
 
@@ -232,7 +233,7 @@ To assess fairness, I tested whether my final model performs worse for **red-sid
 - **Test statistic:** precision(red) − precision(blue)  
 - **Significance level:** 0.05  
 
-I chose side as the grouping variable because red side and blue side are meaningful groups in League of Legends, and I wanted to check whether the model performs differently depending on which side a team is on.
+I chose `side` as the grouping variable because red side and blue side represent the same role in the game and mainly serve to distinguish the two opposing teams, so I wanted to check whether the model performs differently across groups that should be functionally equivalent.
 
 Using the final model on the same unseen test set, I found that the precision for red-side teams was about **0.7400**, while the precision for blue-side teams was about **0.7585**. This gives an observed difference of about **-0.0185**.
 
